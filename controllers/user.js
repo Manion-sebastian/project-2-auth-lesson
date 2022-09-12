@@ -3,11 +3,12 @@ const router = express.Router()
 
 router.get('/new', (req,res) => {
     // render a form to create a new user
-    res.send('user form')
+    res.render('users/new')
 })
 
-router.post('/new', async (req,res) => {
+router.post('/', async (req,res) => {
     try {
+        console.log(req.body)
         res.send('posts user')
     } catch(err) {
         console.warn(err)
