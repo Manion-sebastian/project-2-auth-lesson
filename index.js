@@ -11,7 +11,7 @@ app.use(layout)
 
 // routes
 app.get('/', (req,res) => {
-    res.send('hello, user Auth')
+    res.render('home')
 })
 
 //listen
