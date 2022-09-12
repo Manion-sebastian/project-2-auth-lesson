@@ -29,6 +29,7 @@ router.get('/login', (req,res) => {
 // POST /users/login -- accept a payload of form data and use it to  log a user in
 
 router.post('/login', (req,res) => {
+    console.log(req.body)
     res.send('log the user in')
 })
 
