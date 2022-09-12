@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const db = require('../models')
+const crypto = require('crypto-js')
 
 router.get('/new', (req,res) => {
     // render a form to create a new user
@@ -12,8 +13,10 @@ router.post('/', async (req,res) => {
         //create new user
         const newUser = await db.user.create(req.body)
         //store that new users id as a cookie in browser
-        res.cookie('userId', newUser.id) 
-        res.redirect('/')
+        const encryptedUserId = crypto.AES.encrypt(newUser.id.toString(), process.env.ENC_SECRET)
+        const encryptedUserIdString = encryptedUserId.toString()
+        res.cookie('userId', encryptedUserIdString)
+        res.redirect('./users/profile')
 
     } catch(err) {
         console.warn(err)
@@ -47,9 +50,10 @@ router.post('/login', async (req,res) => {
             res.redirect('/users/login?message=' + noLoginMessage)
         // if the user is fround the the supplied password is wrong return to login page.
         } else {
-            console.log('successful login')
-            res.cookie('userId', user.id)
-            res.redirect('/')
+            const encryptedUserId = crypto.AES.encrypt(newUser.id.toString(), process.env.ENC_SECRET)
+            const encryptedUserIdString = encryptedUserId.toString()
+            res.cookie('userId', encryptedUserIdString)
+            res.redirect('./users/profile')
         }
     } catch(err) {
         console.log(err)

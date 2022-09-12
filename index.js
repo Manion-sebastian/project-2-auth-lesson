@@ -5,6 +5,7 @@ const layout = require('express-ejs-layouts')
 const db = require('./models')
 // for allowing auth w/ cookies. 
 const cookieParser = require('cookie-parser')
+const crypto = require('crypto-js')
 
 // config express middleware
 const app = express()
@@ -26,7 +27,10 @@ app.use(async (req,res, next) => {
     // if there is a cookie on the incoming request
     // industry standard for node security -- passport.js 
     if (req.cookies.userId) {
-        const user = await db.user.findByPk(req.cookies.userId)
+        // decrypt the user id before we look up the user in the db
+        const decryptedId = crypto.AES.decrypt(req.cookies.id, process.env.ENC_SECRET)
+        const decryptedIdString = decryptedId.toString(crypto.enc.Utf8)
+        const user = await db.user.findByPk(decryptedIdString)
         res.locals.user = user
     } else {
         res.locals.user = null
