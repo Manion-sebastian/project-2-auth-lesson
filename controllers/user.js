@@ -69,7 +69,7 @@ router.get('/profile', (req,res) => {
     if (!res.locals.user){
         res.redirect ('/users/login?message=You must authorize before you are authroized to view this resource')
     } else {
-        res.render('/users/profile', {
+        res.render('./users/profile', {
             user: res.locals.user
         })
     }
