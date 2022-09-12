@@ -23,7 +23,8 @@ router.post('/', async (req,res) => {
 // GET /users/login -- show a login form to the user
 
 router.get('/login', (req,res) => {
-    res.render('users/login')
+    res.render('users/login', 
+    {message: req.query.message ? req.query.message : null})
 })
 
 // POST /users/login -- accept a payload of form data and use it to  log a user in
@@ -36,13 +37,14 @@ router.post('/login', async (req,res) => {
                 email: req.body.email
             }
         })
+        const noLoginMessage = 'Incorrect username or password'
         if (!user){
             console.log('user not found') 
-            res.redirect('/users/login')
+            res.redirect('/users/login?message=' + noLoginMessage)
         // if the user is not found -- send them back to login page
         } else if (user.password !== req.body.password) {
             console.log('wrong password')
-            res.redirect('/users/login')
+            res.redirect('/users/login?message=' + noLoginMessage)
         // if the user is fround the the supplied password is wrong return to login page.
         } else {
             console.log('successful login')
@@ -58,7 +60,8 @@ router.post('/login', async (req,res) => {
 // GET /users/logout -- log out a user by clearing the cookie
 
 router.get('/logout', (req,res) => {
-    res.send('log the user out')
+    res.clearCookie('userId')
+    res.redirect('/')
 })
 
 module.exports = router
