@@ -2,6 +2,7 @@ const express = require('express')
 const router = express.Router()
 const db = require('../models')
 const crypto = require('crypto-js')
+const bcrypt = require('bcrypt')
 
 router.get('/new', (req,res) => {
     // render a form to create a new user
@@ -10,8 +11,13 @@ router.get('/new', (req,res) => {
 
 router.post('/', async (req,res) => {
     try {
+        // hash the password from the req.body
+        const hashedPassword = bcrypt.hashSync(req.body.password, 12)
         //create new user
-        const newUser = await db.user.create(req.body)
+        const [newUser, created] = await db.user.findOrCreate({
+            email: req.body.email,
+            password: hashedPassword
+        })
         //store that new users id as a cookie in browser
         const encryptedUserId = crypto.AES.encrypt(newUser.id.toString(), process.env.ENC_SECRET)
         const encryptedUserIdString = encryptedUserId.toString()
@@ -45,15 +51,15 @@ router.post('/login', async (req,res) => {
             console.log('user not found') 
             res.redirect('/users/login?message=' + noLoginMessage)
         // if the user is not found -- send them back to login page
-        } else if (user.password !== req.body.password) {
+        } else if (!bcrypt.compareSync(req.body.password, user.password)) {
             console.log('wrong password')
             res.redirect('/users/login?message=' + noLoginMessage)
         // if the user is fround the the supplied password is wrong return to login page.
         } else {
-            const encryptedUserId = crypto.AES.encrypt(newUser.id.toString(), process.env.ENC_SECRET)
+            const encryptedUserId = crypto.AES.encrypt(user.id.toString(), process.env.ENC_SECRET)
             const encryptedUserIdString = encryptedUserId.toString()
             res.cookie('userId', encryptedUserIdString)
-            res.redirect('./users/profile')
+            res.redirect('/users/profile')
         }
     } catch(err) {
         console.log(err)

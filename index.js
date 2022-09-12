@@ -15,29 +15,23 @@ app.use(layout)
 app.use(express.urlencoded({extended:false}))
 app.use(cookieParser())
 
-// our custom middleware 
-app.use(async (req,res, next) => {
-    // console.log('hello there from the middleware 👋🏽')
-    // mounts data into middleware and can be accesed from any route.
-    res.locals.myData = 'hello fellow route!'
-    // move on to the next route or middleware in the chain
-    // without next it express wont know what to do and will stay locked in place
-    // actual logic 
-    // -----
+// our custom auth middleware
+app.use(async (req, res, next) => {
+    // console.log('hello from a middleware 👋')
     // if there is a cookie on the incoming request
-    // industry standard for node security -- passport.js 
     if (req.cookies.userId) {
         // decrypt the user id before we look up the user in the db
-        const decryptedId = crypto.AES.decrypt(req.cookies.id, process.env.ENC_SECRET)
+        const decryptedId = crypto.AES.decrypt(req.cookies.userId.toString(), process.env.ENC_SECRET)
         const decryptedIdString = decryptedId.toString(crypto.enc.Utf8)
+        // look up the user in the db
         const user = await db.user.findByPk(decryptedIdString)
+        // mount the user on the res.locals
         res.locals.user = user
+    // if there is no cookie -- set the user to be null in the res.locals
     } else {
         res.locals.user = null
     }
-        // look up the user in the db
-        // mount the user on the res.local
-    // if there is not user -- set user to be null in the res.locals
+    // move on to the next route or middleware in the chain
     next()
 })
 
