@@ -24,9 +24,10 @@ app.use(async (req,res, next) => {
     // actual logic 
     // -----
     // if there is a cookie on the incoming request
+    // industry standard for node security -- passport.js 
     if (req.cookies.userId) {
         const user = await db.user.findByPk(req.cookies.userId)
-        res.locals.user = null
+        res.locals.user = user
     } else {
         res.locals.user = null
     }
