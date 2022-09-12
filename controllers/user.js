@@ -14,15 +14,26 @@ router.post('/', async (req,res) => {
         // hash the password from the req.body
         const hashedPassword = bcrypt.hashSync(req.body.password, 12)
         //create new user
-        const [newUser, created] = await db.user.findOrCreate({
+        const [newUser, created] = await db.user.findOrCreate({ where: {
             email: req.body.email,
-            password: hashedPassword
+            
+
+            }, 
+            defaults: {
+                password: hashedPassword
+            }
         })
-        //store that new users id as a cookie in browser
-        const encryptedUserId = crypto.AES.encrypt(newUser.id.toString(), process.env.ENC_SECRET)
-        const encryptedUserIdString = encryptedUserId.toString()
-        res.cookie('userId', encryptedUserIdString)
-        res.redirect('./users/profile')
+        if (!created) {
+            console.log('user exists')
+            res.redirect('/users/login?message=Please log into your account to continue')
+        } else {
+            //store that new users id as a cookie in browser
+            const encryptedUserId = crypto.AES.encrypt(newUser.id.toString(), process.env.ENC_SECRET)
+            const encryptedUserIdString = encryptedUserId.toString()
+            res.cookie('userId', encryptedUserIdString)
+            res.redirect('./users/profile')
+
+        }
 
     } catch(err) {
         console.warn(err)
