@@ -28,9 +28,31 @@ router.get('/login', (req,res) => {
 
 // POST /users/login -- accept a payload of form data and use it to  log a user in
 
-router.post('/login', (req,res) => {
-    console.log(req.body)
-    res.send('log the user in')
+router.post('/login', async (req,res) => {
+    try {
+        // look up user in db using supplied email
+        const user = await db.user.findOne({
+            where: {
+                email: req.body.email
+            }
+        })
+        if (!user){
+            console.log('user not found') 
+            res.redirect('/users/login')
+        // if the user is not found -- send them back to login page
+        } else if (user.password !== req.body.password) {
+            console.log('wrong password')
+            res.redirect('/users/login')
+        // if the user is fround the the supplied password is wrong return to login page.
+        } else {
+            console.log('successful login')
+            res.cookie('userId', user.id)
+            res.redirect('/')
+        }
+    } catch(err) {
+        console.log(err)
+        res.send('server error')
+    }
 })
 
 // GET /users/logout -- log out a user by clearing the cookie
